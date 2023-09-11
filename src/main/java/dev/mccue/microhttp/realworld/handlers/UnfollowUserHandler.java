@@ -28,7 +28,7 @@ public final class UnfollowUserHandler extends AuthenticatedRouteHandler {
     }
 
     @Override
-    protected IntoResponse handleAuthenticatedRoute(User user, Matcher matcher, Request request) throws Exception {
+    protected IntoResponse handleAuthenticatedRoute(User user, Matcher matcher, Request request) {
         var username = matcher.group("username");
 
         User userToUnfollow = null;

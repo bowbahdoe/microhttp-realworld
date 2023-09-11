@@ -40,11 +40,9 @@ public final class LoginHandler extends RouteHandler {
     protected IntoResponse handleRoute(Matcher routeMatch, Request request) {
         var loginRequest = RequestUtils.parseBody(request, LoginRequest::fromJson);
 
-        var badEmailOrPassword = Responses.validationError(List.of("invalid email or password"));
-
         var user = userService.findByEmail(loginRequest.email).orElse(null);
         if (user == null || !user.isCorrectPassword(loginRequest.password())) {
-            return badEmailOrPassword;
+            return Responses.validationError(List.of("invalid email or password"));
         }
         else {
             return new UserResponse(user, authService.jwtForUser(user));

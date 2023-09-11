@@ -2,6 +2,7 @@ package dev.mccue.microhttp.realworld;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonEncodable;
+import dev.mccue.reasonphrase.ReasonPhrase;
 import org.microhttp.Header;
 import org.microhttp.Response;
 
@@ -31,11 +32,7 @@ public record JsonResponse(
         );
         return new Response(
                 status,
-                switch (status) {
-                    case 200 -> "OK";
-                    case 404 -> "Not Found";
-                    default -> "UNKNOWN";
-                },
+                ReasonPhrase.forStatus(status),
                 Collections.unmodifiableList(headers),
                 Json.writeString(body).getBytes(StandardCharsets.UTF_8)
         );

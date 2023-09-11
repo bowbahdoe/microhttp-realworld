@@ -47,7 +47,6 @@ public final class ArticleService {
     public Optional<Article> forId(long articleId) {
         try (var conn = db.getConnection();
              var stmt = conn.prepareStatement(
-                     // language=SQL
                      """
                      SELECT %s
                      FROM article
@@ -70,7 +69,6 @@ public final class ArticleService {
         var articles = new ArrayList<Article>();
         try (var conn = db.getConnection();
              var stmt = conn.prepareStatement(
-                     // language=SQL
                      """
                      SELECT %s
                      FROM article
@@ -90,7 +88,6 @@ public final class ArticleService {
 
         try (var conn = db.getConnection();
              var stmt = conn.prepareStatement(
-                     // language=SQL
                      """
                      SELECT article_favorite.user_id
                      FROM article_favorite
@@ -118,7 +115,6 @@ public final class ArticleService {
     public List<String> tags(long articleId) {
         try (var conn = db.getConnection();
              var stmt = conn.prepareStatement(
-                     // language=SQL
                      """
                      SELECT tag.name
                      FROM article_tag
@@ -152,7 +148,6 @@ public final class ArticleService {
 
             var tagIds = new HashSet<Long>();
             try (var stmt = conn.prepareStatement(
-                    // language=SQL
                     """
                     SELECT tag.tag_id
                     FROM tag
@@ -174,7 +169,6 @@ public final class ArticleService {
 
             long articleId;
             try (var stmt = conn.prepareStatement(
-                    // language=SQL
                     """
                     INSERT INTO article(title, description, body, user_id, external_article_id)
                     VALUES (?, ?, ?, ?, ?);
@@ -195,7 +189,6 @@ public final class ArticleService {
 
             for (var tagId : tagIds) {
                 try (var stmt = conn.prepareStatement(
-                        // language=SQL
                         """
                         INSERT INTO article_tag(article_id, tag_id)
                         VALUES (?, ?)

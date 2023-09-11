@@ -58,17 +58,8 @@ public abstract class AuthenticatedRouteHandler extends RouteHandler {
     }
 
     private static Optional<User> userForRequest(AuthService authService, Request request) {
-        var authToken = authTokenFromRequest(request).orElse(null);
-        if (authToken == null) {
-            return Optional.empty();
-        }
-
-        var user = authService.decodeJwt(authToken).orElse(null);
-        if (user == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(user);
+        return authTokenFromRequest(request)
+                .flatMap(authService::decodeJwt);
     }
 
 

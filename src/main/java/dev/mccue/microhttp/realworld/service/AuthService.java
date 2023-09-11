@@ -45,9 +45,7 @@ public final class AuthService {
             return Optional.empty();
         }
 
-
-        var user = userService.findById(userId).orElse(null);
-        return Optional.ofNullable(user);
+        return userService.findById(userId);
     }
 
     public String jwtForUser(User user) {

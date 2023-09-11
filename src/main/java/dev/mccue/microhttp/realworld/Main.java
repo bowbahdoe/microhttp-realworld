@@ -34,6 +34,7 @@ public final class Main {
                 new FollowUserHandler(authService, userService),
                 new GetCurrentUserHandler(authService),
                 new GetTagsHandler(tagService, authService),
+                new HealthHandler(),
                 new HelloHandler(),
                 new ListArticlesHandler(authService, articleService, userService),
                 new LoginHandler(authService, userService),
@@ -152,11 +153,22 @@ public final class Main {
         }
 
 
-        return new JsonResponse(Json.of("Unhandled route")).intoResponse();
+        return new JsonResponse(
+                404,
+                Json.objectBuilder()
+                    .put("errors", Json.objectBuilder()
+                            .put("other", Json.arrayBuilder()
+                                    .add("Route not found.")))
+        ).intoResponse();
     }
 
     public void start() throws Exception {
-        var executor = Executors.newFixedThreadPool(10);
+        var executor = Executors.newThreadPerTaskExecutor(
+                Thread
+                        .ofVirtual()
+                        .name("handler-", 0)
+                        .factory()
+        );
         var eventLoop = new EventLoop(
                 new Options()
                         .withPort(5555),

@@ -180,6 +180,28 @@ public final class UserService {
         }
     }
 
+    public Optional<User> findByUsernameOrId(String usernameOrId) {
+        try (var conn = this.db.getConnection();
+             var stmt = conn.prepareStatement(
+                     """
+                     SELECT %s
+                     FROM "user"
+                     WHERE "user".username = ? OR "user".id = ?
+                     """.formatted(SELECT_FIELDS))) {
+            stmt.setString(1, usernameOrId);
+            stmt.setString(2, usernameOrId);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(userFromRow(rs));
+            }
+            else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void update(User user) {
         try (var conn = this.db.getConnection();
              var update = conn.prepareStatement(

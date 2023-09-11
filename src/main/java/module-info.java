@@ -7,6 +7,7 @@ module dev.mccue.microhttp.realworld {
     requires org.xerial.sqlitejdbc;
     requires dev.mccue.json;
     requires dev.mccue.microhttp.systemlogger;
+    requires dev.mccue.reasonphrase;
     requires org.jspecify;
     requires com.auth0.jwt;
 
