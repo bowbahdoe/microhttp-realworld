@@ -2,7 +2,7 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.BodyUtils;
+import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.Responses;
 import dev.mccue.microhttp.realworld.domain.User;
@@ -20,13 +20,14 @@ import java.util.regex.Pattern;
 public final class RegisterUserHandler extends RouteHandler {
     private final UserService userService;
     private final AuthService authService;
+
     public RegisterUserHandler(
-            UserService userService,
-            AuthService authService
+            AuthService authService,
+            UserService userService
     ) {
         super("POST", Pattern.compile("/api/users"));
-        this.userService = userService;
         this.authService = authService;
+        this.userService = userService;
     }
 
     public record RegisterUserRequest(String email, String username, String password) {
@@ -47,7 +48,7 @@ public final class RegisterUserHandler extends RouteHandler {
             Matcher routeMatch,
             Request request
     )  {
-        var registerUserRequest = BodyUtils.parseBody(
+        var registerUserRequest = RequestUtils.parseBody(
                 request,
                 RegisterUserRequest::fromJson
         );

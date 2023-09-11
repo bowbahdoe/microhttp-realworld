@@ -9,6 +9,7 @@ module dev.mccue.microhttp.realworld {
     requires dev.mccue.microhttp.systemlogger;
     requires org.jspecify;
     requires com.auth0.jwt;
+
     requires org.slf4j.jdk.platform.logging;
     requires ch.qos.logback.classic;
 

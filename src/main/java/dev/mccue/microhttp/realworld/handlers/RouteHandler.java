@@ -2,6 +2,7 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.microhttp.realworld.Handler;
 import dev.mccue.microhttp.realworld.IntoResponse;
+import dev.mccue.microhttp.realworld.RequestUtils;
 import org.jspecify.annotations.Nullable;
 import org.microhttp.Request;
 
@@ -39,7 +40,7 @@ public abstract class RouteHandler implements Handler {
             return null;
         }
 
-        var matcher = pattern.matcher(request.uri());
+        var matcher = pattern.matcher(RequestUtils.parseUri(request).base());
 
         if (!matcher.matches()) {
             return null;

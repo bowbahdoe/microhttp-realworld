@@ -2,7 +2,7 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.BodyUtils;
+import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.Responses;
 import dev.mccue.microhttp.realworld.domain.UserResponse;
@@ -15,13 +15,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class LoginHandler extends RouteHandler {
-    private final UserService userService;
     private final AuthService authService;
+    private final UserService userService;
 
-    public LoginHandler(UserService userService, AuthService authService) {
+    public LoginHandler(AuthService authService, UserService userService) {
         super("POST", Pattern.compile("/api/users/login"));
-        this.userService = userService;
         this.authService = authService;
+        this.userService = userService;
     }
 
     public record LoginRequest(
@@ -38,7 +38,7 @@ public final class LoginHandler extends RouteHandler {
 
     @Override
     protected IntoResponse handleRoute(Matcher routeMatch, Request request) {
-        var loginRequest = BodyUtils.parseBody(request, LoginRequest::fromJson);
+        var loginRequest = RequestUtils.parseBody(request, LoginRequest::fromJson);
 
         var badEmailOrPassword = Responses.validationError(List.of("invalid email or password"));
 

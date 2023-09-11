@@ -2,7 +2,7 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.BodyUtils;
+import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.domain.PasswordHash;
 import dev.mccue.microhttp.realworld.domain.User;
@@ -20,8 +20,8 @@ public final class UpdateUserHandler
     private final UserService userService;
 
     public UpdateUserHandler(
-            UserService userService,
-            AuthService authService
+            AuthService authService,
+            UserService userService
     ) {
         super("PUT", Pattern.compile("/api/user"), authService);
         this.userService = userService;
@@ -51,7 +51,7 @@ public final class UpdateUserHandler
             Matcher matcher,
             Request request
     ) {
-        var updateUserRequest = BodyUtils.parseBody(request, UpdateUserRequest::fromJson);
+        var updateUserRequest = RequestUtils.parseBody(request, UpdateUserRequest::fromJson);
         var updatedUser = new User(
                 user.id(),
                 updateUserRequest.email.orElse(user.email()),
