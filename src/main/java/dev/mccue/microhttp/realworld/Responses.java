@@ -23,4 +23,14 @@ public class Responses {
                                         .add(Json.of("unauthenticated"))))
         );
     }
+
+    public static JsonResponse internalError() {
+        return new JsonResponse(
+                401,
+                Json.objectBuilder()
+                        .put("errors", Json.objectBuilder()
+                                .put("request", Json.arrayBuilder()
+                                        .add(Json.of("internal error"))))
+        );
+    }
 }

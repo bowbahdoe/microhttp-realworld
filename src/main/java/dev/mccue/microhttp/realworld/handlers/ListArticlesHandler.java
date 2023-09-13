@@ -3,36 +3,28 @@ package dev.mccue.microhttp.realworld.handlers;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.domain.ArticleResponse;
-import dev.mccue.microhttp.realworld.domain.ArticleSearchQuery;
-import dev.mccue.microhttp.realworld.domain.ArticleSearchQueryBuilder;
-import dev.mccue.microhttp.realworld.domain.User;
-import dev.mccue.microhttp.realworld.service.ArticleService;
-import dev.mccue.microhttp.realworld.service.AuthService;
-import dev.mccue.microhttp.realworld.service.UserService;
+import dev.mccue.microhttp.realworld.domain.AuthContext;
 import org.microhttp.Request;
+import org.sqlite.SQLiteDataSource;
 
-import java.util.Optional;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class ListArticlesHandler
     extends AuthenticatedRouteHandler {
-    private final ArticleService articleService;
-    private final UserService userService;
+    private final SQLiteDataSource db;
 
     public ListArticlesHandler(
-            AuthService authService,
-            ArticleService articleService,
-            UserService userService
+            SQLiteDataSource db
     ) {
-        super("GET", Pattern.compile("/api/articles"), authService);
-        this.articleService = articleService;
-        this.userService = userService;
+        super("GET", Pattern.compile("/api/articles"));
+        this.db = db;
     }
 
     @Override
     protected IntoResponse handleAuthenticatedRoute(
-            User user,
+            AuthContext authContext,
             Matcher matcher,
             Request request
     ) {
@@ -44,23 +36,41 @@ public final class ListArticlesHandler
         var limit = params.get("limit");
         var offset = params.get("offset");
 
-        var queryBuilder = ArticleSearchQueryBuilder.builder(new ArticleSearchQuery());
+        var query = """
+                SELECT article.*
+                FROM article
+                JOIN article_favorite
+                    ON article_favorite.article_id = article.id
+                JOIN user
+                    ON article_favorite.user_id = user.id
+                WHERE
+                    user.username = ?
+                ORDER BY
+                    article.updated_at DESC, article.id DESC
+                LIMIT ?
+                OFFSET ?
+                """;
+
+
+        record Filter(String expression, Object value) { }
+
+        var filters = new ArrayList<Filter>();
         if (tag != null) {
-            queryBuilder.tag(Optional.of(tag));
+            filters.add(new Filter("tag = ?", tag));
         }
 
         if (author != null) {
-            queryBuilder.author(Optional.of(author));
+            filters.add(new Filter("author = ?", tag));
         }
 
         if (favorited != null) {
-            queryBuilder.favorited(Optional.of(favorited));
+            filters.add(new Filter("favorited = ?", tag));
         }
 
         if (limit != null) {
             try {
                 int limitInt = Integer.parseInt(limit);
-                queryBuilder.limit(limitInt);
+                filters.add(new Filter("LIMIT ?", limitInt));
             } catch (NumberFormatException e) {
                 // ignore
             }
@@ -69,19 +79,11 @@ public final class ListArticlesHandler
         if (offset != null) {
             try {
                 int offsetInt = Integer.parseInt(offset);
-                queryBuilder.offset(offsetInt);
+                filters.add(new Filter("OFFSET ?", offsetInt));
             } catch (NumberFormatException e) {
                 // ignore
             }
         }
-
-        var query = queryBuilder.build();
-
-        ArticleResponse.forQuery(
-                articleService,
-                userService,
-                query
-        );
 
         return null;
     }

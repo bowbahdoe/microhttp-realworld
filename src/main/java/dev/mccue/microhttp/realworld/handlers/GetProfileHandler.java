@@ -1,22 +1,23 @@
 package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.microhttp.realworld.IntoResponse;
-import dev.mccue.microhttp.realworld.domain.User;
-import dev.mccue.microhttp.realworld.service.AuthService;
+import dev.mccue.microhttp.realworld.domain.AuthContext;
 import org.microhttp.Request;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class GetProfileHandler
-    extends AuthenticatedRouteHandler {
-    public GetProfileHandler(AuthService authService) {
-        super("GET", Pattern.compile("/api/profiles/(?<username>.+)"), authService);
+public final class GetProfileHandler extends AuthenticatedRouteHandler {
+    public GetProfileHandler() {
+        super(
+                "GET",
+                Pattern.compile("/api/profiles/(?<username>.+)")
+        );
     }
 
     @Override
     protected IntoResponse handleAuthenticatedRoute(
-            User user,
+            AuthContext authContext,
             Matcher matcher,
             Request request
     ) throws Exception {

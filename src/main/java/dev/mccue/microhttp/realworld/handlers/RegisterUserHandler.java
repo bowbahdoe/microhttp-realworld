@@ -2,32 +2,25 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.RequestUtils;
-import dev.mccue.microhttp.realworld.IntoResponse;
-import dev.mccue.microhttp.realworld.Responses;
-import dev.mccue.microhttp.realworld.domain.User;
-import dev.mccue.microhttp.realworld.domain.UserResponse;
-import dev.mccue.microhttp.realworld.service.AuthService;
-import dev.mccue.microhttp.realworld.service.UserService;
-import dev.mccue.microhttp.realworld.service.UserService.RegistrationResult.EmailTaken;
-import dev.mccue.microhttp.realworld.service.UserService.RegistrationResult.Success;
+import dev.mccue.microhttp.realworld.*;
+import dev.mccue.microhttp.realworld.domain.PasswordHash;
 import org.microhttp.Request;
+import org.sqlite.SQLiteDataSource;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class RegisterUserHandler extends RouteHandler {
-    private final UserService userService;
-    private final AuthService authService;
+    private final SQLiteDataSource db;
+
 
     public RegisterUserHandler(
-            AuthService authService,
-            UserService userService
+            SQLiteDataSource db
     ) {
         super("POST", Pattern.compile("/api/users"));
-        this.authService = authService;
-        this.userService = userService;
+        this.db = db;
     }
 
     public record RegisterUserRequest(String email, String username, String password) {
@@ -47,23 +40,86 @@ public final class RegisterUserHandler extends RouteHandler {
     protected IntoResponse handleRoute(
             Matcher routeMatch,
             Request request
-    )  {
+    ) throws SQLException {
         var registerUserRequest = RequestUtils.parseBody(
                 request,
                 RegisterUserRequest::fromJson
         );
 
-        return switch (userService.register(
-                registerUserRequest.username,
-                registerUserRequest.email,
-                registerUserRequest.password
-        )) {
-            case EmailTaken __ ->
-                    Responses.validationError(List.of("email taken"));
-            case UserService.RegistrationResult.UsernameTaken __ ->
-                    Responses.validationError(List.of("username taken"));
-            case Success(User user) ->
-                    new UserResponse(user, authService.jwtForUser(user));
-        };
+
+        var username = registerUserRequest.username.toLowerCase();
+        var email = registerUserRequest.email.toLowerCase();
+        var password = registerUserRequest.password;
+
+        try (var conn = this.db.getConnection()) {
+            conn.setAutoCommit(false);
+            try (var selectByEmail = conn.prepareStatement(
+                    """
+                    SELECT 1
+                    FROM "user"
+                    WHERE "user".email = ?
+                    """)) {
+                selectByEmail.setString(1, email);
+                if (selectByEmail.executeQuery().next()) {
+                    return Responses.validationError(List.of("email taken"));
+                }
+            }
+
+            try (var selectByUsername = conn.prepareStatement(
+                    """
+                    SELECT 1
+                    FROM "user"
+                    WHERE "user".username = ?
+                    """)) {
+                selectByUsername.setString(1, username);
+                if (selectByUsername.executeQuery().next()) {
+                    return Responses.validationError(List.of("username taken"));
+                }
+            }
+
+            try (var insert = conn.prepareStatement(
+                    """
+                    INSERT INTO "user"(username, email, password_hash)
+                    VALUES (?, ?, ?)
+                    """)) {
+                insert.setString(1, username);
+                insert.setString(2, email);
+                insert.setString(3, PasswordHash.fromUnHashedPassword(password).value());
+                insert.execute();
+            }
+
+            conn.commit();
+
+            try (var findByEmail = conn.prepareStatement(
+                    """
+                     SELECT
+                        "user".id,
+                        "user".email,
+                        "user".username,
+                        "user".bio,
+                        "user".image,
+                        "user".password_hash
+                     FROM "user"
+                     WHERE "user".email = ?
+                    """)) {
+                findByEmail.setString(1, email);
+
+                var rs = findByEmail.executeQuery();
+                rs.next();
+
+                return new JsonResponse(
+                        Json.objectBuilder()
+                                .put(
+                                        "user",
+                                        Json.objectBuilder()
+                                                .put("email", rs.getString("email"))
+                                                .put("username", rs.getString("username"))
+                                                .put("bio", rs.getString("bio"))
+                                                .put("image", rs.getString("image"))
+                                                .put("token", Auth.jwtForUser(rs.getLong("id")))
+                                )
+                );
+            }
+        }
     }
 }

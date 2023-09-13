@@ -2,26 +2,22 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.RequestUtils;
-import dev.mccue.microhttp.realworld.IntoResponse;
-import dev.mccue.microhttp.realworld.Responses;
-import dev.mccue.microhttp.realworld.domain.UserResponse;
-import dev.mccue.microhttp.realworld.service.AuthService;
-import dev.mccue.microhttp.realworld.service.UserService;
+import dev.mccue.microhttp.realworld.*;
+import dev.mccue.microhttp.realworld.domain.PasswordHash;
 import org.microhttp.Request;
+import org.sqlite.SQLiteDataSource;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class LoginHandler extends RouteHandler {
-    private final AuthService authService;
-    private final UserService userService;
+    private final SQLiteDataSource db;
 
-    public LoginHandler(AuthService authService, UserService userService) {
+    public LoginHandler(SQLiteDataSource db) {
         super("POST", Pattern.compile("/api/users/login"));
-        this.authService = authService;
-        this.userService = userService;
+        this.db = db;
     }
 
     public record LoginRequest(
@@ -36,16 +32,48 @@ public final class LoginHandler extends RouteHandler {
         }
     }
 
+
     @Override
-    protected IntoResponse handleRoute(Matcher routeMatch, Request request) {
+    protected IntoResponse handleRoute(Matcher routeMatch, Request request) throws SQLException {
         var loginRequest = RequestUtils.parseBody(request, LoginRequest::fromJson);
 
-        var user = userService.findByEmail(loginRequest.email).orElse(null);
-        if (user == null || !user.isCorrectPassword(loginRequest.password())) {
+        try (var conn = this.db.getConnection();
+             var stmt = conn.prepareStatement(
+                     """
+                     SELECT
+                        "user".id,
+                        "user".email,
+                        "user".username,
+                        "user".bio,
+                        "user".image
+                        "user".password_hash
+                     FROM "user"
+                     WHERE "user".email = ?
+                     """)) {
+            stmt.setString(1, loginRequest.email());
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                var passwordHash = new PasswordHash(
+                        rs.getString("password_hash")
+                );
+
+                if (passwordHash.isCorrectPassword(loginRequest.password)) {
+                    return new JsonResponse(
+                            Json.objectBuilder()
+                                .put(
+                                        "user",
+                                        Json.objectBuilder()
+                                                .put("email", rs.getString("email"))
+                                                .put("username", rs.getString("username"))
+                                                .put("bio", rs.getString("bio"))
+                                                .put("image", rs.getString("image"))
+                                                .put("token", Auth.jwtForUser(rs.getLong("id")))
+                                )
+                    );
+                }
+            }
+
             return Responses.validationError(List.of("invalid email or password"));
-        }
-        else {
-            return new UserResponse(user, authService.jwtForUser(user));
         }
     }
 }

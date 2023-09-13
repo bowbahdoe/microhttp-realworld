@@ -45,7 +45,6 @@ public record ArticleResponse(
                 .stream()
                 .flatMap(article -> forArticleId(articleService, userService, article.userId(), article.articleId()).stream())
                 .filter(articleResponse -> query.tag().map(articleResponse.tags::contains).orElse(true))
-
                 .skip(query.offset())
                 .limit(query.limit())
                 .toList();

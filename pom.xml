@@ -18,12 +18,17 @@
         <dependency>
             <groupId>org.microhttp</groupId>
             <artifactId>microhttp</artifactId>
-            <version>0.9</version>
+            <version>0.10</version>
         </dependency>
         <dependency>
             <groupId>dev.mccue</groupId>
             <artifactId>json</artifactId>
             <version>0.2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.mccue</groupId>
+            <artifactId>reasonphrase</artifactId>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>dev.mccue</groupId>
@@ -68,6 +73,18 @@
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-jlink-plugin</artifactId>
+                <version>3.1.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <noHeaderFiles>true</noHeaderFiles>
+                    <noManPages>true</noManPages>
+                    <stripDebug>true</stripDebug>
+                    <verbose>true</verbose>
+                    <compress>2</compress>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

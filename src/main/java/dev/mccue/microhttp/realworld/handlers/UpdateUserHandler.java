@@ -2,29 +2,30 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.RequestUtils;
+import dev.mccue.microhttp.realworld.Auth;
 import dev.mccue.microhttp.realworld.IntoResponse;
-import dev.mccue.microhttp.realworld.domain.PasswordHash;
-import dev.mccue.microhttp.realworld.domain.User;
-import dev.mccue.microhttp.realworld.domain.UserResponse;
-import dev.mccue.microhttp.realworld.service.AuthService;
-import dev.mccue.microhttp.realworld.service.UserService;
+import dev.mccue.microhttp.realworld.JsonResponse;
+import dev.mccue.microhttp.realworld.RequestUtils;
+import dev.mccue.microhttp.realworld.domain.AuthContext;
 import org.microhttp.Request;
+import org.sqlite.SQLiteDataSource;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public final class UpdateUserHandler
         extends AuthenticatedRouteHandler {
-    private final UserService userService;
+    private final SQLiteDataSource db;
 
     public UpdateUserHandler(
-            AuthService authService,
-            UserService userService
+            SQLiteDataSource db
     ) {
-        super("PUT", Pattern.compile("/api/user"), authService);
-        this.userService = userService;
+        super("PUT", Pattern.compile("/api/user"));
+        this.db = db;
     }
 
     public record UpdateUserRequest(
@@ -41,32 +42,88 @@ public final class UpdateUserHandler
                     JsonDecoder.optionalField(json, "password", JsonDecoder::string),
                     JsonDecoder.optionalField(json, "image", JsonDecoder::string),
                     JsonDecoder.optionalField(json, "bio", JsonDecoder::string)
+
             );
         }
     }
 
     @Override
     protected IntoResponse handleAuthenticatedRoute(
-            User user,
+            AuthContext authContext,
             Matcher matcher,
             Request request
-    ) {
+    ) throws SQLException {
         var updateUserRequest = RequestUtils.parseBody(request, UpdateUserRequest::fromJson);
-        var updatedUser = new User(
-                user.id(),
-                updateUserRequest.email.orElse(user.email()),
-                updateUserRequest.username.orElse(user.username()),
-                updateUserRequest.bio.or(user::bio),
-                updateUserRequest.image.or(user::image),
-                updateUserRequest.password
-                        .map(PasswordHash::fromUnHashedPassword)
-                        .orElse(user.passwordHash())
-        );
-        userService.update(updatedUser);
 
-        return new UserResponse(
-                updatedUser,
-                authService.jwtForUser(updatedUser)
-        );
+        record Update(String setExpression, Object value) {}
+
+        var updates = new ArrayList<Update>();
+        updateUserRequest.username.ifPresent(username -> {
+            updates.add(new Update("username = ?", username));
+        });
+        updateUserRequest.email.ifPresent(email -> {
+            updates.add(new Update("email = ?", email));
+        });
+        updateUserRequest.bio.ifPresent(bio -> {
+            updates.add(new Update("bio = ?", bio));
+        });
+        updateUserRequest.image.ifPresent(image -> {
+            updates.add(new Update("image = ?", image));
+        });
+        try (var conn = this.db.getConnection()) {
+            if (!updates.isEmpty()) {
+                try (var stmt = conn.prepareStatement(
+                        """
+                        UPDATE user
+                        SET
+                           %s
+                        WHERE id = ?
+                        """.formatted(
+                                updates.stream()
+                                        .map(Update::setExpression)
+                                        .collect(Collectors.joining(",\n    "))
+                        )
+                )) {
+                    int i = 1;
+                    for (var update : updates) {
+                        stmt.setObject(i, update.value);
+                        i++;
+                    }
+
+                    stmt.setLong(i, authContext.userId());
+                    stmt.execute();
+                }
+
+            }
+
+            try (var stmt = conn.prepareStatement(
+                    """
+                    SELECT
+                       "user".id,
+                       "user".email,
+                       "user".username,
+                       "user".bio,
+                       "user".image
+                       "user".password_hash
+                    FROM "user"
+                    WHERE "user".id = ?
+                    """)) {
+                stmt.setLong(1, authContext.userId());
+                var rs = stmt.executeQuery();
+                rs.next();
+                return new JsonResponse(
+                        Json.objectBuilder()
+                                .put(
+                                        "user",
+                                        Json.objectBuilder()
+                                                .put("email", rs.getString("email"))
+                                                .put("username", rs.getString("username"))
+                                                .put("bio", rs.getString("bio"))
+                                                .put("image", rs.getString("image"))
+                                                .put("token", Auth.jwtForUser(rs.getLong("id")))
+                                )
+                );
+            }
+        }
     }
 }

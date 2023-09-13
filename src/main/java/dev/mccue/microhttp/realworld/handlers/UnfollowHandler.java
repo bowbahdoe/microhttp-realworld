@@ -13,14 +13,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class GetCurrentUserHandler
-        extends AuthenticatedRouteHandler {
+public class UnfollowHandler extends AuthenticatedRouteHandler {
     private final SQLiteDataSource db;
 
-    public GetCurrentUserHandler(SQLiteDataSource db) {
+    public UnfollowHandler(SQLiteDataSource db) {
         super(
-                "GET",
-                Pattern.compile("/api/user")
+                "DELETE",
+                Pattern.compile("/api/profiles/(?<username>.+)/follow")
         );
         this.db = db;
     }
@@ -31,37 +30,45 @@ public final class GetCurrentUserHandler
             Matcher matcher,
             Request request
     ) throws SQLException {
+        var username = matcher.group("username");
+
         try (var conn = this.db.getConnection();
              var stmt = conn.prepareStatement(
                      """
                      SELECT
                         "user".id,
-                        "user".email,
                         "user".username,
                         "user".bio,
                         "user".image
                      FROM "user"
-                     WHERE "user".id = ?
+                     WHERE "user".username = ?
                      """)) {
-            stmt.setLong(1, authContext.userId());
+            stmt.setString(1, username);
             var rs = stmt.executeQuery();
             if (rs.next()) {
+                long followerId = authContext.userId();
+                long followingId = rs.getLong("id");
+                try (var insert = conn.prepareStatement(
+                        """
+                        DELETE FROM follow
+                        WHERE follower_user_id = ? AND following_user_id = ?
+                        """)) {
+                    insert.setLong(1, followerId);
+                    insert.setLong(2, followingId);
+                    insert.execute();
+                }
+
                 return new JsonResponse(
                         Json.objectBuilder()
-                                .put(
-                                        "user",
-                                        Json.objectBuilder()
-                                                .put("email", rs.getString("email"))
-                                                .put("username", rs.getString("username"))
-                                                .put("bio", rs.getString("bio"))
-                                                .put("image", rs.getString("image"))
-                                )
+                                .put("profile", Json.objectBuilder()
+                                        .put("username", username)
+                                        .put("bio", rs.getString("bio"))
+                                        .put("image", rs.getString("image"))
+                                        .put("following", false))
                 );
             }
-            else {
-                return Responses.validationError(List.of("no user found"));
-            }
-
         }
+
+        return Responses.validationError(List.of("invalid user"));
     }
 }

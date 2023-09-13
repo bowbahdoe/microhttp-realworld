@@ -2,15 +2,9 @@ package dev.mccue.microhttp.realworld;
 
 import dev.mccue.json.Json;
 import dev.mccue.microhttp.realworld.handlers.*;
-import dev.mccue.microhttp.realworld.service.ArticleService;
-import dev.mccue.microhttp.realworld.service.AuthService;
-import dev.mccue.microhttp.realworld.service.TagService;
-import dev.mccue.microhttp.realworld.service.UserService;
 import dev.mccue.microhttp.systemlogger.SystemLogger;
-import org.microhttp.EventLoop;
-import org.microhttp.Options;
-import org.microhttp.Request;
-import org.microhttp.Response;
+import dev.mccue.reasonphrase.ReasonPhrase;
+import org.microhttp.*;
 import org.sqlite.SQLiteDataSource;
 
 import java.lang.System.Logger.Level;
@@ -25,22 +19,17 @@ public final class Main {
 
     private Main() throws Exception {
         var db = getDB();
-        var tagService = new TagService(db);
-        var articleService = new ArticleService(db);
-        var userService = new UserService(db);
-        var authService = new AuthService(userService);
         this.handlers = List.of(
                 new CorsHandler(),
-                new FollowUserHandler(authService, userService),
-                new GetCurrentUserHandler(authService),
-                new GetTagsHandler(tagService, authService),
+                new FollowHandler(db),
+                new GetCurrentUserHandler(db),
+                new GetTagsHandler(db),
                 new HealthHandler(),
-                new HelloHandler(),
-                new ListArticlesHandler(authService, articleService, userService),
-                new LoginHandler(authService, userService),
-                new RegisterUserHandler(authService, userService),
-                new UnfollowUserHandler(authService, userService),
-                new UpdateUserHandler(authService, userService)
+                new ListArticlesHandler(db),
+                new LoginHandler(db),
+                new RegisterUserHandler(db),
+                new UnfollowHandler(db),
+                new UpdateUserHandler(db)
         );
     }
 
@@ -170,8 +159,9 @@ public final class Main {
                         .factory()
         );
         var eventLoop = new EventLoop(
-                new Options()
-                        .withPort(5555),
+                OptionsBuilder.newBuilder()
+                        .withPort(5555)
+                        .build(),
                 new SystemLogger(),
                 (req, cb) -> executor.submit(() -> {
                     try {
@@ -183,6 +173,7 @@ public final class Main {
                                 "Unhandled exception while handling " + req.method() + " " + req.uri(),
                                 e
                         );
+                        cb.accept(Responses.internalError().intoResponse());
                     }
                 })
         );
