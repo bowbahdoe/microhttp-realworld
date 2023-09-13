@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class RegisterUserHandler extends RouteHandler {
+public final class RegisterHandler extends RouteHandler {
     private final SQLiteDataSource db;
 
 
-    public RegisterUserHandler(
+    public RegisterHandler(
             SQLiteDataSource db
     ) {
         super("POST", Pattern.compile("/api/users"));

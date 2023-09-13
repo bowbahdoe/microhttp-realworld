@@ -8,6 +8,8 @@ import dev.mccue.microhttp.realworld.domain.AuthContext;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -30,7 +32,10 @@ public final class FollowHandler extends AuthenticatedRouteHandler {
             Matcher matcher,
             Request request
     ) throws SQLException {
-        var username = matcher.group("username");
+        var username = URLDecoder.decode(
+                matcher.group("username"),
+                StandardCharsets.UTF_8
+        );
 
         try (var conn = this.db.getConnection();
              var stmt = conn.prepareStatement(

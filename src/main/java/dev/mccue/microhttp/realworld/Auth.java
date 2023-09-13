@@ -12,7 +12,7 @@ public final class Auth {
 
     public static String jwtForUser(long userId) {
         var algorithm = Algorithm.HMAC256(
-                Objects.requireNonNull(System.getenv("JWT_SECRET"))
+                Objects.requireNonNull(Env.JWT_SECRET)
         );
         return JWT.create()
                 .withClaim("user_id", Long.toString(userId))

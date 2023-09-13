@@ -1,6 +1,7 @@
 package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
+import dev.mccue.microhttp.realworld.Env;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import org.microhttp.Request;
 
@@ -16,7 +17,7 @@ public final class HealthHandler extends RouteHandler {
     protected JsonResponse handleRoute(Matcher routeMatch, Request request) {
         return new JsonResponse(
                 Json.objectBuilder()
-                        .put("environment", System.getenv("ENVIRONMENT"))
+                        .put("environment", Env.ENVIRONMENT)
         );
     }
 }

@@ -9,7 +9,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestCorsHandler {
+public class CorsHandlerTest {
     @Test
     public void testOptionsRequest() throws Exception {
         for (var uri : List.of("/", "/abc", "/a/b/c/d/e/f/g")) {

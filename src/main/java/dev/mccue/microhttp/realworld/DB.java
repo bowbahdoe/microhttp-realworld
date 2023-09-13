@@ -7,7 +7,6 @@ import java.nio.file.Path;
 public final class DB {
     private DB() {}
 
-
     public static SQLiteDataSource getDB(Path path) throws Exception {
         SQLiteDataSource db = new SQLiteDataSource();
         db.setUrl("jdbc:sqlite:" + path);

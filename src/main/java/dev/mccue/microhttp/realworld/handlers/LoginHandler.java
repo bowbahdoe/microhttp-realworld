@@ -45,7 +45,7 @@ public final class LoginHandler extends RouteHandler {
                         "user".email,
                         "user".username,
                         "user".bio,
-                        "user".image
+                        "user".image,
                         "user".password_hash
                      FROM "user"
                      WHERE "user".email = ?
@@ -73,7 +73,13 @@ public final class LoginHandler extends RouteHandler {
                 }
             }
 
-            return Responses.validationError(List.of("invalid email or password"));
+            return new JsonResponse(
+                    401,
+                    Json.objectBuilder()
+                            .put("errors", Json.objectBuilder()
+                                    .put("body", Json.arrayBuilder()
+                                            .add(Json.of("invalid email or password"))))
+            );
         }
     }
 }

@@ -1,12 +1,17 @@
 package dev.mccue.microhttp.realworld.domain;
 
+import dev.mccue.json.Json;
+import dev.mccue.json.JsonEncodable;
+import dev.mccue.json.JsonString;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public record ExternalId(String value) {
+public record ExternalId(String value)
+        implements JsonEncodable {
     public ExternalId {
         Objects.requireNonNull(value, "external id value should not be null.");
         if (!URLEncoder.encode(value, StandardCharsets.UTF_8).equals(value)) {
@@ -37,5 +42,10 @@ public record ExternalId(String value) {
             sb.append(random.nextInt(10));
         }
         return new ExternalId(sb.toString());
+    }
+
+    @Override
+    public Json toJson() {
+        return JsonString.of(value);
     }
 }

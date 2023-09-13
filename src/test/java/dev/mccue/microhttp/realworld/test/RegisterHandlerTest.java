@@ -6,7 +6,7 @@ import dev.mccue.json.JsonDecoder;
 import dev.mccue.json.JsonNull;
 import dev.mccue.json.JsonString;
 import dev.mccue.microhttp.realworld.DB;
-import dev.mccue.microhttp.realworld.handlers.RegisterUserHandler;
+import dev.mccue.microhttp.realworld.handlers.RegisterHandler;
 import org.junit.jupiter.api.Test;
 import org.microhttp.Request;
 
@@ -17,12 +17,12 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestRegisterUserHandler {
+public class RegisterHandlerTest {
     @Test
     public void testRegisterNewUser() throws Exception {
         var db = DB.getDB(Files.createTempFile(null, null));
 
-        var handler = new RegisterUserHandler(db);
+        var handler = new RegisterHandler(db);
 
         var response = handler.handle(new Request(
                 "POST",
@@ -74,7 +74,7 @@ public class TestRegisterUserHandler {
     public void testDuplicateEmail() throws Exception {
         var db = DB.getDB(Files.createTempFile(null, null));
 
-        var handler = new RegisterUserHandler(db);
+        var handler = new RegisterHandler(db);
 
         var firstResponse = handler.handle(new Request(
                 "POST",
@@ -131,7 +131,7 @@ public class TestRegisterUserHandler {
     public void testDuplicateUsername() throws Exception {
         var db = DB.getDB(Files.createTempFile(null, null));
 
-        var handler = new RegisterUserHandler(db);
+        var handler = new RegisterHandler(db);
 
         var firstResponse = handler.handle(new Request(
                 "POST",

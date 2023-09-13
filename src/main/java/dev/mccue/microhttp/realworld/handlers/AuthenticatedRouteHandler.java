@@ -8,6 +8,7 @@ import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecodeException;
 import dev.mccue.json.JsonDecoder;
 import dev.mccue.json.JsonReadException;
+import dev.mccue.microhttp.realworld.Env;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.Responses;
@@ -79,7 +80,7 @@ public abstract class AuthenticatedRouteHandler extends RouteHandler {
         DecodedJWT decodedJWT;
         try {
             var algorithm = Algorithm.HMAC256(
-                    Objects.requireNonNull(System.getenv("JWT_SECRET"))
+                    Objects.requireNonNull(Env.JWT_SECRET)
             );
             var verifier = JWT.require(algorithm).build();
             decodedJWT = verifier.verify(authToken);
