@@ -16,4 +16,9 @@ module dev.mccue.microhttp.realworld {
 
     requires static io.soabase.recordbuilder.core;
     requires static java.compiler;
+
+    exports dev.mccue.microhttp.realworld
+            to dev.mccue.microhttp.realworld.test;
+    exports dev.mccue.microhttp.realworld.handlers
+            to dev.mccue.microhttp.realworld.test;
 }

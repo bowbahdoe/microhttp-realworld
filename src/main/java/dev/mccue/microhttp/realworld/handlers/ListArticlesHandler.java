@@ -2,11 +2,11 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
-import dev.mccue.microhttp.realworld.domain.ArticleResponse;
 import dev.mccue.microhttp.realworld.domain.AuthContext;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +33,20 @@ public final class ListArticlesHandler
         var tag = params.get("tag");
         var author = params.get("author");
         var favorited = params.get("favorited");
-        var limit = params.get("limit");
-        var offset = params.get("offset");
+
+        int limit = 20;
+        try {
+            limit = Integer.parseInt(params.get("limit"));
+        } catch (NumberFormatException e) {
+            // pass
+        }
+
+        int offset = 0;
+        try {
+            offset = Integer.parseInt(params.get("offset"));
+        } catch (NumberFormatException e) {
+            // pass
+        }
 
         var query = """
                 SELECT article.*
@@ -65,24 +77,6 @@ public final class ListArticlesHandler
 
         if (favorited != null) {
             filters.add(new Filter("favorited = ?", tag));
-        }
-
-        if (limit != null) {
-            try {
-                int limitInt = Integer.parseInt(limit);
-                filters.add(new Filter("LIMIT ?", limitInt));
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
-
-        if (offset != null) {
-            try {
-                int offsetInt = Integer.parseInt(offset);
-                filters.add(new Filter("OFFSET ?", offsetInt));
-            } catch (NumberFormatException e) {
-                // ignore
-            }
         }
 
         return null;
