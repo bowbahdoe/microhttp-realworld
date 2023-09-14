@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 public final class RegisterHandler extends RouteHandler {
     private final SQLiteDataSource db;
 
-
     public RegisterHandler(
             SQLiteDataSource db
     ) {
