@@ -15,15 +15,16 @@ public final class RootHandler implements Handler {
     public RootHandler(SQLiteDataSource db) {
         this.handlers = List.of(
                 new CorsHandler(),
-                new FollowHandler(db),
+                new FollowUserHandler(db),
                 new GetCurrentUserHandler(db),
                 new GetTagsHandler(db),
                 new HealthHandler(),
                 new ListArticlesHandler(db),
                 new LoginHandler(db),
                 new RegisterHandler(db),
-                new UnfollowHandler(db),
-                new UpdateUserHandler(db)
+                new UnfollowUserHandler(db),
+                new UpdateUserHandler(db),
+                new CreateArticleHandler(db)
         );
     }
     @Override

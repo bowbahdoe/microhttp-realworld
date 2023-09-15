@@ -8,34 +8,29 @@ import dev.mccue.microhttp.realworld.domain.AuthContext;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class FollowHandler extends AuthenticatedRouteHandler {
+public class UnfollowUserHandler extends AuthenticatedRouteHandler {
     private final SQLiteDataSource db;
 
-    public FollowHandler(SQLiteDataSource db) {
+    public UnfollowUserHandler(SQLiteDataSource db) {
         super(
-                "POST",
+                "DELETE",
                 Pattern.compile("/api/profiles/(?<username>.+)/follow")
         );
         this.db = db;
     }
 
     @Override
-    public IntoResponse handleAuthenticatedRoute(
+    protected IntoResponse handleAuthenticatedRoute(
             AuthContext authContext,
             Matcher matcher,
             Request request
     ) throws SQLException {
-        var username = URLDecoder.decode(
-                matcher.group("username"),
-                StandardCharsets.UTF_8
-        );
+        var username = matcher.group("username");
 
         try (var conn = this.db.getConnection();
              var stmt = conn.prepareStatement(
@@ -55,8 +50,8 @@ public final class FollowHandler extends AuthenticatedRouteHandler {
                 long followingId = rs.getLong("id");
                 try (var insert = conn.prepareStatement(
                         """
-                        INSERT OR IGNORE INTO follow(follower_user_id, following_user_id)
-                        VALUES (?, ?)
+                        DELETE FROM follow
+                        WHERE follower_user_id = ? AND following_user_id = ?
                         """)) {
                     insert.setLong(1, followerId);
                     insert.setLong(2, followingId);
@@ -76,5 +71,4 @@ public final class FollowHandler extends AuthenticatedRouteHandler {
 
         return Responses.validationError(List.of("invalid user"));
     }
-
 }

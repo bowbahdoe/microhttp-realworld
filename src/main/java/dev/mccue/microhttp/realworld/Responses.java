@@ -33,4 +33,14 @@ public class Responses {
                                         .add(Json.of("internal error"))))
         );
     }
+
+    public static JsonResponse notFound() {
+        return new JsonResponse(
+                404,
+                Json.objectBuilder()
+                        .put("errors", Json.objectBuilder()
+                                .put("body", Json.arrayBuilder()
+                                        .add(Json.of("not found"))))
+        );
+    }
 }

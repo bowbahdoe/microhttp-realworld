@@ -15,7 +15,4 @@ public record Article(
         LocalDateTime updatedAt,
         long userId
 ) {
-    public ArticleSlug slug() {
-        return new ArticleSlug(externalId, title);
-    }
 }

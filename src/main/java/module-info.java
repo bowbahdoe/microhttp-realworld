@@ -14,6 +14,7 @@ module dev.mccue.microhttp.realworld {
 
     requires org.slf4j.jdk.platform.logging;
     requires ch.qos.logback.classic;
+    requires slugify;
 
     requires static io.soabase.recordbuilder.core;
     requires static java.compiler;

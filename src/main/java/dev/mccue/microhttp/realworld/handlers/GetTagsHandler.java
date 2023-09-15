@@ -33,7 +33,7 @@ public final class GetTagsHandler extends AuthenticatedRouteHandler {
                      """)) {
             var rs = stmt.executeQuery();
             while (rs.next()) {
-                names.add(rs.getString(1));
+                names.add(rs.getString("name"));
             }
         }
 
