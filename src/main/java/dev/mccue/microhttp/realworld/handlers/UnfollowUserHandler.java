@@ -35,14 +35,14 @@ public class UnfollowUserHandler extends AuthenticatedRouteHandler {
         try (var conn = this.db.getConnection();
              var stmt = conn.prepareStatement(
                      """
-                     SELECT
-                        "user".id,
-                        "user".username,
-                        "user".bio,
-                        "user".image
-                     FROM "user"
-                     WHERE "user".username = ?
-                     """)) {
+                             SELECT
+                                "user".id,
+                                "user".username,
+                                "user".bio,
+                                "user".image
+                             FROM "user"
+                             WHERE "user".username = ?
+                             """)) {
             stmt.setString(1, username);
             var rs = stmt.executeQuery();
             if (rs.next()) {
@@ -50,9 +50,9 @@ public class UnfollowUserHandler extends AuthenticatedRouteHandler {
                 long followingId = rs.getLong("id");
                 try (var insert = conn.prepareStatement(
                         """
-                        DELETE FROM follow
-                        WHERE follower_user_id = ? AND following_user_id = ?
-                        """)) {
+                                DELETE FROM follow
+                                WHERE follower_user_id = ? AND following_user_id = ?
+                                """)) {
                     insert.setLong(1, followerId);
                     insert.setLong(2, followingId);
                     insert.execute();

@@ -24,7 +24,8 @@ public final class RootHandler implements Handler {
                 new RegisterHandler(db),
                 new UnfollowUserHandler(db),
                 new UpdateUserHandler(db),
-                new CreateArticleHandler(db)
+                new CreateArticleHandler(db),
+                new UpdateArticleHandler(db)
         );
     }
     @Override

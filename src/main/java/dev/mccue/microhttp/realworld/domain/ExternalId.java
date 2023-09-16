@@ -12,11 +12,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public record ExternalId(String value)
         implements JsonEncodable {
-    public ExternalId {
+    public ExternalId(String value) {
         Objects.requireNonNull(value, "external id value should not be null.");
-        if (!URLEncoder.encode(value, StandardCharsets.UTF_8).equals(value)) {
-            throw new IllegalArgumentException("external ids should be url safe. %s".formatted(value));
-        }
+        this.value = URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private static final int DEFAULT_LENGTH = 8;

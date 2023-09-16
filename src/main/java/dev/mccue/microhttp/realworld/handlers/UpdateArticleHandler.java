@@ -6,25 +6,25 @@ import dev.mccue.json.JsonDecoder;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
+import dev.mccue.microhttp.realworld.Responses;
 import dev.mccue.microhttp.realworld.domain.ArticleSlug;
 import dev.mccue.microhttp.realworld.domain.AuthContext;
 import dev.mccue.microhttp.realworld.domain.ExternalId;
-import org.jspecify.annotations.Nullable;
-import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public final class CreateArticleHandler
-        extends AuthenticatedRouteHandler {
+public class UpdateArticleHandler extends AuthenticatedRouteHandler {
     private final SQLiteDataSource db;
 
-    public CreateArticleHandler(SQLiteDataSource db) {
-        super("POST", Pattern.compile("/api/articles"));
+    protected UpdateArticleHandler(SQLiteDataSource db) {
+        super("PUT", Pattern.compile("/api/articles/(?<slug>.+)"));
         this.db = db;
     }
 
@@ -32,57 +32,51 @@ public final class CreateArticleHandler
     protected IntoResponse handleAuthenticatedRoute(
             AuthContext authContext,
             Matcher matcher,
-            Request request
+            org.microhttp.Request request
     ) throws Exception {
-        var createArticleRequest = RequestUtils.parseBody(request, RequestBody::fromJson);
+        var requestBody = RequestUtils.parseBody(request, RequestBody::fromJson);
+        var slug = ArticleSlug.fromString(matcher.group("slug"))
+                .orElse(null);
+        if (slug == null) {
+            return Responses.validationError(List.of("Invalid slug"));
+        }
+
+        record Update(String setExpression, Object value) {
+        }
+
+        var updates = new ArrayList<Update>();
+
+        requestBody.title.ifPresent(title -> updates.add(
+                new Update("title = ?", title)
+        ));
+
+        requestBody.description.ifPresent(description -> updates.add(
+                new Update("description = ?", description)
+        ));
+
+        requestBody.body.ifPresent(body -> updates.add(
+                new Update("body = ?", body)
+        ));
 
         try (var conn = db.getConnection()) {
-            conn.setAutoCommit(false);
-
-            long articleId;
+            // TODO: check authorship
             try (var stmt = conn.prepareStatement("""
-                    INSERT INTO article(user_id, title, description, body, external_id)
-                    VALUES (?, ?, ?, ?, ?)
-                    RETURNING id
-                    """)) {
-                stmt.setObject(1, authContext.userId());
-                stmt.setObject(2, createArticleRequest.title);
-                stmt.setObject(3, createArticleRequest.description);
-                stmt.setObject(4, createArticleRequest.body);
-                stmt.setObject(5, ExternalId.generate().value());
-
-                var rs = stmt.executeQuery();
-                articleId = rs.getLong("id");
-            }
-
-            if (createArticleRequest.tagList != null) {
-                var tagIds = new LinkedHashSet<Long>();
-                for (var tag : createArticleRequest.tagList) {
-                    try (var stmt = conn.prepareStatement("""
-                            INSERT INTO tag(name)
-                            VALUES (?)
-                            ON CONFLICT (name) DO UPDATE SET name=tag.name
-                            RETURNING id
-                            """)) {
-                        stmt.setObject(1, tag);
-                        var rs = stmt.executeQuery();
-                        tagIds.add(rs.getLong("id"));
-                    }
+                    UPDATE article
+                    SET
+                        %s
+                    WHERE external_id = ?
+                    """.formatted(
+                    updates.stream()
+                            .map(Update::setExpression)
+                            .collect(Collectors.joining(",\n    "))))) {
+                int i = 1;
+                for (var update : updates) {
+                    stmt.setObject(i, update.value);
+                    i++;
                 }
-
-                for (var tagId : tagIds) {
-                    try (var stmt = conn.prepareStatement("""
-                            INSERT INTO article_tag(article_id, tag_id)
-                            VALUES (?, ?)
-                            """)) {
-                        stmt.setObject(1, articleId);
-                        stmt.setObject(2, tagId);
-                        stmt.execute();
-                    }
-                }
+                stmt.setString(i, slug.externalId().value());
+                stmt.execute();
             }
-
-            conn.commit();
 
             var articleJson = Json.objectBuilder();
             try (var stmt = conn.prepareStatement("""
@@ -115,12 +109,12 @@ public final class CreateArticleHandler
                     LEFT JOIN article_favorite user_favorite
                         ON user_favorite.article_id = article.id
                             AND user_favorite.user_id = ?
-                    WHERE article.id = ?
+                    WHERE article.external_id = ?
                     GROUP BY article.id;
                     """)) {
                 stmt.setObject(1, authContext.userId());
                 stmt.setObject(2, authContext.userId());
-                stmt.setLong(3, articleId);
+                stmt.setString(3, slug.externalId().value());
 
                 var rs = stmt.executeQuery();
                 while (rs.next()) {
@@ -146,6 +140,7 @@ public final class CreateArticleHandler
                     articleJson.put("updated_at", DateTimeFormatter.ISO_DATE_TIME.format(
                             rs.getTimestamp("updated_at").toLocalDateTime()
                     ));
+                    System.out.println(rs.getBoolean("favorited"));
                     articleJson.put("favorited", rs.getBoolean("favorited"));
                     articleJson.put("favoritesCount", rs.getInt("favorites_count"));
                     articleJson.put("author", Json.objectBuilder()
@@ -162,20 +157,15 @@ public final class CreateArticleHandler
     }
 
     record RequestBody(
-            String title,
-            String description,
-            String body,
-            @Nullable List<String> tagList
+            Optional<String> title,
+            Optional<String> description,
+            Optional<String> body
     ) {
         static RequestBody fromJson(Json json) {
             return JsonDecoder.field(json, "article", article -> new RequestBody(
-                    JsonDecoder.field(article, "title", JsonDecoder::string),
-                    JsonDecoder.field(article, "description", JsonDecoder::string),
-                    JsonDecoder.field(article, "body", JsonDecoder::string),
-                    JsonDecoder.optionalNullableField(
-                            article, "tagList", JsonDecoder.array(JsonDecoder::string),
-                            null
-                    )
+                    JsonDecoder.optionalField(article, "title", JsonDecoder::string),
+                    JsonDecoder.optionalField(article, "description", JsonDecoder::string),
+                    JsonDecoder.optionalField(article, "body", JsonDecoder::string)
             ));
         }
     }
