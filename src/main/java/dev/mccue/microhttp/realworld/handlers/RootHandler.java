@@ -15,19 +15,21 @@ public final class RootHandler implements Handler {
     public RootHandler(SQLiteDataSource db) {
         this.handlers = List.of(
                 new CorsHandler(),
+                new CreateArticleHandler(db),
                 new FollowUserHandler(db),
                 new GetCurrentUserHandler(db),
+                new GetProfileHandler(db),
                 new GetTagsHandler(db),
                 new HealthHandler(),
                 new ListArticlesHandler(db),
                 new LoginHandler(db),
                 new RegisterHandler(db),
                 new UnfollowUserHandler(db),
-                new UpdateUserHandler(db),
-                new CreateArticleHandler(db),
-                new UpdateArticleHandler(db)
+                new UpdateArticleHandler(db),
+                new UpdateUserHandler(db)
         );
     }
+
     @Override
     public IntoResponse handle(Request request) throws Exception {
         try {
