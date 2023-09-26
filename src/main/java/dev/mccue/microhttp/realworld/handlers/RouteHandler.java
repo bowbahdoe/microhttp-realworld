@@ -6,6 +6,7 @@ import dev.mccue.microhttp.realworld.RequestUtils;
 import org.jspecify.annotations.Nullable;
 import org.microhttp.Request;
 
+import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +30,7 @@ public abstract class RouteHandler implements Handler {
             return null;
         }
 
-        var matcher = pattern.matcher(RequestUtils.parseUri(request).base());
+        var matcher = pattern.matcher(new URI(request.uri()).getPath());
 
         if (!matcher.matches()) {
             return null;

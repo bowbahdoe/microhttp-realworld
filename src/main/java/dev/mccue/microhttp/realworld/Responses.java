@@ -4,7 +4,9 @@ import dev.mccue.json.Json;
 
 import java.util.List;
 
-public class Responses {
+public final class Responses {
+    private Responses() {}
+
     public static JsonResponse validationError(List<String> messages) {
         return new JsonResponse(
                 422,

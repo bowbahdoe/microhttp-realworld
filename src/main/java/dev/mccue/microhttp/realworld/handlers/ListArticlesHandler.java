@@ -3,10 +3,13 @@ package dev.mccue.microhttp.realworld.handlers;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.AuthContext;
+import dev.mccue.microhttp.realworld.UriUtils;
 import org.jspecify.annotations.Nullable;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,8 +30,8 @@ public final class ListArticlesHandler
             @Nullable AuthContext authContext,
             Matcher matcher,
             Request request
-    ) {
-        var params = RequestUtils.parseUri(request).queryParams();
+    ) throws URISyntaxException {
+        var params = UriUtils.queryParams(new URI(request.uri()));
 
         var tag = params.get("tag");
         var author = params.get("author");
