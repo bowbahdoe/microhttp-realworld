@@ -4,7 +4,7 @@ import dev.mccue.json.Json;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.Responses;
-import dev.mccue.microhttp.realworld.domain.AuthContext;
+import dev.mccue.microhttp.realworld.AuthContext;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class UnfollowUserHandler extends AuthenticatedRouteHandler {
+public final class UnfollowUserHandler extends AuthenticatedRouteHandler {
     private final SQLiteDataSource db;
 
     public UnfollowUserHandler(SQLiteDataSource db) {

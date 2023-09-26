@@ -1,4 +1,4 @@
-package dev.mccue.microhttp.realworld.domain;
+package dev.mccue.microhttp.realworld;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonEncodable;

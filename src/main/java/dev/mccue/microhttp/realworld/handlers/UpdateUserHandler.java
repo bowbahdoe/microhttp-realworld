@@ -6,7 +6,7 @@ import dev.mccue.microhttp.realworld.Auth;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
-import dev.mccue.microhttp.realworld.domain.AuthContext;
+import dev.mccue.microhttp.realworld.AuthContext;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 

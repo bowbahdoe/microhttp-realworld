@@ -1,4 +1,4 @@
-package dev.mccue.microhttp.realworld.domain;
+package dev.mccue.microhttp.realworld;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

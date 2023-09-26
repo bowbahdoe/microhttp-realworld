@@ -4,7 +4,7 @@ import dev.mccue.json.Json;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.Responses;
-import dev.mccue.microhttp.realworld.domain.AuthContext;
+import dev.mccue.microhttp.realworld.AuthContext;
 import org.jspecify.annotations.Nullable;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;

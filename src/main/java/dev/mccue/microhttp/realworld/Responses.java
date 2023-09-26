@@ -24,6 +24,16 @@ public class Responses {
         );
     }
 
+    public static JsonResponse notTheAuthor() {
+        return new JsonResponse(
+                401,
+                Json.objectBuilder()
+                        .put("errors", Json.objectBuilder()
+                                .put("body", Json.arrayBuilder()
+                                        .add(Json.of("not the author of the article"))))
+        );
+    }
+
     public static JsonResponse internalError() {
         return new JsonResponse(
                 401,

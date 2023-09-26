@@ -2,7 +2,7 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.microhttp.realworld.JsonResponse;
-import dev.mccue.microhttp.realworld.domain.AuthContext;
+import dev.mccue.microhttp.realworld.AuthContext;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 

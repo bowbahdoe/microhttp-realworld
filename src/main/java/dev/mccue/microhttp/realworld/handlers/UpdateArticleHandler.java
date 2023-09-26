@@ -1,15 +1,14 @@
 package dev.mccue.microhttp.realworld.handlers;
 
-import com.github.slugify.Slugify;
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.Responses;
-import dev.mccue.microhttp.realworld.domain.ArticleSlug;
-import dev.mccue.microhttp.realworld.domain.AuthContext;
-import dev.mccue.microhttp.realworld.domain.ExternalId;
+import dev.mccue.microhttp.realworld.ArticleSlug;
+import dev.mccue.microhttp.realworld.AuthContext;
+import dev.mccue.microhttp.realworld.ExternalId;
 import org.sqlite.SQLiteDataSource;
 
 import java.time.format.DateTimeFormatter;
@@ -20,10 +19,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class UpdateArticleHandler extends AuthenticatedRouteHandler {
+public final class UpdateArticleHandler extends AuthenticatedRouteHandler {
     private final SQLiteDataSource db;
 
-    protected UpdateArticleHandler(SQLiteDataSource db) {
+    public UpdateArticleHandler(SQLiteDataSource db) {
         super("PUT", Pattern.compile("/api/articles/(?<slug>.+)"));
         this.db = db;
     }
@@ -59,12 +58,12 @@ public class UpdateArticleHandler extends AuthenticatedRouteHandler {
         ));
 
         try (var conn = db.getConnection()) {
-            // TODO: check authorship
             try (var stmt = conn.prepareStatement("""
                     UPDATE article
                     SET
                         %s
-                    WHERE external_id = ?
+                    WHERE article.external_id = ? AND article.user_id = ?
+                    RETURNING id
                     """.formatted(
                     updates.stream()
                             .map(Update::setExpression)
@@ -75,7 +74,12 @@ public class UpdateArticleHandler extends AuthenticatedRouteHandler {
                     i++;
                 }
                 stmt.setString(i, slug.externalId().value());
-                stmt.execute();
+                i++;
+                stmt.setLong(i, authContext.userId());
+                var rs = stmt.executeQuery();
+                if (!rs.next()) {
+                    return Responses.notTheAuthor();
+                }
             }
 
             var articleJson = Json.objectBuilder();
@@ -122,9 +126,7 @@ public class UpdateArticleHandler extends AuthenticatedRouteHandler {
                             "slug",
                             new ArticleSlug(
                                     new ExternalId(rs.getString("external_id")),
-                                    Slugify.builder()
-                                            .build()
-                                            .slugify(rs.getString("title"))
+                                    rs.getString("title")
                             )
                     );
                     articleJson.put("title", rs.getString("title"));

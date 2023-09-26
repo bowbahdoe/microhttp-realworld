@@ -2,12 +2,11 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.microhttp.realworld.IntoResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
-import dev.mccue.microhttp.realworld.domain.AuthContext;
+import dev.mccue.microhttp.realworld.AuthContext;
 import org.jspecify.annotations.Nullable;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

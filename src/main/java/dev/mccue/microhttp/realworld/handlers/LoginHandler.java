@@ -3,12 +3,11 @@ package dev.mccue.microhttp.realworld.handlers;
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
 import dev.mccue.microhttp.realworld.*;
-import dev.mccue.microhttp.realworld.domain.PasswordHash;
+import dev.mccue.microhttp.realworld.PasswordHash;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
 import java.sql.SQLException;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
