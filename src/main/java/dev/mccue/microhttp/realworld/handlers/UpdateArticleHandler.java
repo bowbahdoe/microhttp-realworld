@@ -2,7 +2,7 @@ package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.IntoResponse;
+import dev.mccue.microhttp.handler.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.RequestUtils;
 import dev.mccue.microhttp.realworld.Responses;

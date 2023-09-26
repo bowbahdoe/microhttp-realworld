@@ -8,6 +8,7 @@ module dev.mccue.microhttp.realworld {
     requires dev.mccue.json;
     requires dev.mccue.microhttp.systemlogger;
     requires dev.mccue.reasonphrase;
+    requires dev.mccue.microhttp.handler;
     requires org.jspecify;
     requires com.auth0.jwt;
     requires io.github.cdimascio.dotenv.java;

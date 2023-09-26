@@ -1,7 +1,7 @@
 package dev.mccue.microhttp.realworld.handlers;
 
 import dev.mccue.json.Json;
-import dev.mccue.microhttp.realworld.IntoResponse;
+import dev.mccue.microhttp.handler.IntoResponse;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.Responses;
 import dev.mccue.microhttp.realworld.AuthContext;
@@ -33,8 +33,7 @@ public final class GetProfileHandler
     ) throws Exception {
         var username = matcher.group("username");
 
-        var responseJson = Json.objectBuilder()
-                .put("following", false);
+        var responseJson = Json.objectBuilder();
 
         try (var conn = db.getConnection();
              var stmt = conn.prepareStatement("""
@@ -54,10 +53,8 @@ public final class GetProfileHandler
                 responseJson
                         .put("username", rs.getString("username"))
                         .put("bio", rs.getString("bio"))
-                        .put("image", rs.getString("image"));
-                if (rs.getObject("follow_id") != null) {
-                    responseJson.put("following", true);
-                }
+                        .put("image", rs.getString("image"))
+                        .put("following", rs.getObject("follow_id") != null);
             }
             else {
                 return Responses.notFound();

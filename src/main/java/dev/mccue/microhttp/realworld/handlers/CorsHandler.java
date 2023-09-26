@@ -1,6 +1,6 @@
 package dev.mccue.microhttp.realworld.handlers;
 
-import dev.mccue.microhttp.realworld.IntoResponse;
+import dev.mccue.microhttp.handler.IntoResponse;
 import dev.mccue.reasonphrase.ReasonPhrase;
 import org.microhttp.Header;
 import org.microhttp.Request;

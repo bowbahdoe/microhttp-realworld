@@ -1,8 +1,7 @@
 package dev.mccue.microhttp.realworld.handlers;
 
-import dev.mccue.microhttp.realworld.Handler;
-import dev.mccue.microhttp.realworld.IntoResponse;
-import dev.mccue.microhttp.realworld.RequestUtils;
+import dev.mccue.microhttp.handler.Handler;
+import dev.mccue.microhttp.handler.IntoResponse;
 import org.jspecify.annotations.Nullable;
 import org.microhttp.Request;
 

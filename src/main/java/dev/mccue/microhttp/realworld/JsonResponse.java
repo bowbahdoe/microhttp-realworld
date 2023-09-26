@@ -2,6 +2,7 @@ package dev.mccue.microhttp.realworld;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonEncodable;
+import dev.mccue.microhttp.handler.IntoResponse;
 import dev.mccue.reasonphrase.ReasonPhrase;
 import org.microhttp.Header;
 import org.microhttp.Response;
