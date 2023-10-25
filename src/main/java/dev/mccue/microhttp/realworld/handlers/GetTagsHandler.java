@@ -3,6 +3,7 @@ package dev.mccue.microhttp.realworld.handlers;
 import dev.mccue.json.Json;
 import dev.mccue.microhttp.realworld.JsonResponse;
 import dev.mccue.microhttp.realworld.AuthContext;
+import jakarta.inject.Inject;
 import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
@@ -14,8 +15,11 @@ import java.util.regex.Pattern;
 public final class GetTagsHandler extends AuthenticatedRouteHandler {
     private final SQLiteDataSource db;
 
+    @Inject
     public GetTagsHandler(SQLiteDataSource db) {
         super("GET", Pattern.compile("/api/tags"));
+
+        System.out.println(db);
         this.db = db;
     }
 

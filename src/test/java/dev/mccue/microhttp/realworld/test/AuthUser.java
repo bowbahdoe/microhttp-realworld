@@ -2,7 +2,6 @@ package dev.mccue.microhttp.realworld.test;
 
 import dev.mccue.json.Json;
 import dev.mccue.json.JsonDecoder;
-import dev.mccue.microhttp.realworld.handlers.RootHandler;
 import org.microhttp.Header;
 import org.microhttp.Request;
 

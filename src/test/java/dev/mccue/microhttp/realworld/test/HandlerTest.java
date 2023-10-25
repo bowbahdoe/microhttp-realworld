@@ -1,7 +1,6 @@
 package dev.mccue.microhttp.realworld.test;
 
 import dev.mccue.microhttp.realworld.DB;
-import dev.mccue.microhttp.realworld.handlers.RootHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.sqlite.SQLiteDataSource;
 

@@ -12,13 +12,14 @@ module dev.mccue.microhttp.realworld {
     requires org.jspecify;
     requires com.auth0.jwt;
     requires io.github.cdimascio.dotenv.java;
+    requires dev.mccue.feather;
 
     requires org.slf4j.jdk.platform.logging;
     requires ch.qos.logback.classic;
     requires slugify;
 
-    exports dev.mccue.microhttp.realworld
-            to dev.mccue.microhttp.realworld.test;
+    exports dev.mccue.microhttp.realworld;
+
     exports dev.mccue.microhttp.realworld.handlers
-            to dev.mccue.microhttp.realworld.test;
+            to dev.mccue.microhttp.realworld.test, dev.mccue.feather;
 }

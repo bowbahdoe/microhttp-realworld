@@ -9,6 +9,7 @@ import dev.mccue.microhttp.realworld.Responses;
 import dev.mccue.microhttp.realworld.ArticleSlug;
 import dev.mccue.microhttp.realworld.AuthContext;
 import dev.mccue.microhttp.realworld.ExternalId;
+import org.microhttp.Request;
 import org.sqlite.SQLiteDataSource;
 
 import java.time.format.DateTimeFormatter;
@@ -31,7 +32,7 @@ public final class UpdateArticleHandler extends AuthenticatedRouteHandler {
     protected IntoResponse handleAuthenticatedRoute(
             AuthContext authContext,
             Matcher matcher,
-            org.microhttp.Request request
+            Request request
     ) throws Exception {
         var requestBody = RequestUtils.parseBody(request, RequestBody::fromJson);
         var slug = ArticleSlug.fromString(matcher.group("slug"))
@@ -142,7 +143,6 @@ public final class UpdateArticleHandler extends AuthenticatedRouteHandler {
                     articleJson.put("updated_at", DateTimeFormatter.ISO_DATE_TIME.format(
                             rs.getTimestamp("updated_at").toLocalDateTime()
                     ));
-                    System.out.println(rs.getBoolean("favorited"));
                     articleJson.put("favorited", rs.getBoolean("favorited"));
                     articleJson.put("favoritesCount", rs.getInt("favorites_count"));
                     articleJson.put("author", Json.objectBuilder()

@@ -56,7 +56,7 @@ public abstract class MaybeAuthenticatedRouteHandler extends RouteHandler {
         DecodedJWT decodedJWT;
         try {
             var algorithm = Algorithm.HMAC256(
-                    Objects.requireNonNull(Env.JWT_SECRET)
+                    Env.JWT_SECRET
             );
             var verifier = JWT.require(algorithm).build();
             decodedJWT = verifier.verify(authToken);

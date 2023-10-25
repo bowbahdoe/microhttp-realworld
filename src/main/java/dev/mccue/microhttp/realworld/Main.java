@@ -1,23 +1,52 @@
 package dev.mccue.microhttp.realworld;
 
-import dev.mccue.microhttp.realworld.handlers.RootHandler;
+import dev.mccue.json.Json;
+import dev.mccue.microhttp.handler.DelegatingHandler;
+import dev.mccue.microhttp.handler.Handler;
+import dev.mccue.microhttp.realworld.handlers.*;
 import dev.mccue.microhttp.systemlogger.SystemLogger;
 import org.microhttp.EventLoop;
 import org.microhttp.OptionsBuilder;
 
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 public final class Main {
     private static final System.Logger LOGGER =
             System.getLogger(Main.class.getName());
 
-    private final RootHandler rootHandler;
+    private final DelegatingHandler rootHandler;
 
     private Main() throws Exception {
         var db = DB.getDB(Path.of("test.db"));
-        this.rootHandler = new RootHandler(db);
+
+        List<Handler> handlerList = List.of(
+                new CorsHandler(),
+                new CreateArticleHandler(db),
+                new FollowUserHandler(db),
+                new GetCurrentUserHandler(db),
+                new GetProfileHandler(db),
+                new GetTagsHandler(db),
+                new HealthHandler(),
+                new ListArticlesHandler(db),
+                new LoginHandler(db),
+                new RegisterHandler(db),
+                new UnfollowUserHandler(db),
+                new UpdateArticleHandler(db),
+                new UpdateUserHandler(db)
+        );
+
+        var defaultResponse = new JsonResponse(
+                404,
+                Json.objectBuilder()
+                        .put("errors", Json.objectBuilder()
+                                .put("other", Json.arrayBuilder()
+                                        .add("Route not found.")))
+        );
+
+        this.rootHandler = new DelegatingHandler(handlerList, defaultResponse);
     }
 
     public void start() throws Exception {
